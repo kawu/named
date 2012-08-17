@@ -1,0 +1,14 @@
+Name:               named
+Version:            0.0.1
+Synopsis:           Named entities layer
+License:            BSD3
+License-file:       LICENSE
+Author:             Jakub Waszczuk
+Maintainer:         waszczuk.kuba@gmail.com
+Build-type:         Simple
+Exposed-modules:    Data.Named
+                    Data.Named.DAG
+Build-Depends:      base
+                  , containers
+                  , text
+                  , vector
