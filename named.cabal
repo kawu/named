@@ -8,7 +8,13 @@ Maintainer:         waszczuk.kuba@gmail.com
 Build-type:         Simple
 Exposed-modules:    Data.Named
                     Data.Named.DAG
+                    Text.Named.TeiNCP
 Build-Depends:      base
                   , containers
                   , text
                   , vector
+                  , polysoup
+                  , tar
+                  , zlib
+                  , bytestring
+                  , filepath
