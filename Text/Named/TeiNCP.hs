@@ -2,9 +2,12 @@
 
 module Text.Named.TeiNCP
 ( ID
-, Para
-, Sent
-, NE
+, Cert (..)
+, Ptr (..)
+, Deriv (..)
+, Para (..)
+, Sent (..)
+, NE (..)
 , parseNamed
 , readNamed
 ) where
@@ -30,11 +33,16 @@ data Cert
 data Ptr
     -- | Of "#id" form
     = Local
-        { target    :: L.Text }
+        { target    :: ID }
     -- | Of "loc#id" form
     | Global
-        { target    :: L.Text
+        { target    :: ID
         , location  :: L.Text }
+    deriving (Show)
+
+data Deriv = Deriv
+    { derivType :: L.Text 
+    , derivFrom :: L.Text }
     deriving (Show)
 
 -- | Paragraph.
@@ -52,6 +60,7 @@ data Sent = Sent
 -- | A Seg element in a file. 
 data NE = NE
     { neID      :: ID
+    , derived   :: Maybe Deriv
     , neType    :: L.Text
     , subType   :: Maybe L.Text
     , orth      :: L.Text
@@ -81,6 +90,7 @@ nameP = (tag "seg" *> getAttr "xml:id") `join` \neID -> do
 
 nameBodyP :: P NE
 nameBodyP = (tag "fs" *> hasAttr "type" "named") `joinR` do
+    deriv <- optional derivP
     neType <- fSymP "type"
     subType <- optional (fSymP "subtype")
     orth <- fStrP "orth"
@@ -88,8 +98,15 @@ nameBodyP = (tag "fs" *> hasAttr "type" "named") `joinR` do
     cert <- certP
     certComment <- optional (fStrP "comment")
     return $ NE { neType = neType, subType = subType, orth = orth, base = base
-                , cert = cert, certComment = certComment
+                , derived = deriv, cert = cert, certComment = certComment
                 , neID = "", ptrs = [] }    -- ^ Should be supplied outside
+
+derivP :: P Deriv
+derivP = fP "derived" `joinR` ( fsP "derivation" `joinR` do
+    Deriv <$> fSymP "derivType" <*> fStrP "derivedFrom" )
+    
+fP x  = tag "f"  *> hasAttr "name" x
+fsP x = tag "fs" *> hasAttr "type" x
 
 certP :: P Cert
 certP =

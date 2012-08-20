@@ -8,6 +8,7 @@ Maintainer:         waszczuk.kuba@gmail.com
 Build-type:         Simple
 Exposed-modules:    Data.Named
                     Data.Named.DAG
+                    Data.Named.Graph
                     Text.Named.TeiNCP
 Build-Depends:      base
                   , containers
