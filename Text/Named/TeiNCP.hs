@@ -64,7 +64,8 @@ data NE = NE
     , neType    :: L.Text
     , subType   :: Maybe L.Text
     , orth      :: L.Text
-    , base      :: L.Text
+    -- | Left base or Right when.
+    , base      :: Either L.Text L.Text
     , cert      :: Cert
     , certComment   :: Maybe L.Text
     , ptrs      :: [Ptr] }
@@ -86,6 +87,7 @@ nameP :: P NE
 nameP = (tag "seg" *> getAttr "xml:id") `join` \neID -> do
     ne <- nameBodyP
     ptrs <- some namePtrP
+        <|> failBad ("no targets specified for " ++ L.unpack neID)
     return $ ne { neID = neID, ptrs = ptrs }
 
 nameBodyP :: P NE
@@ -94,7 +96,8 @@ nameBodyP = (tag "fs" *> hasAttr "type" "named") `joinR` do
     neType <- fSymP "type"
     subType <- optional (fSymP "subtype")
     orth <- fStrP "orth"
-    base <- fStrP "base"
+    base <- (Left  <$> fStrP "base")
+        <|> (Right <$> fStrP "when")
     cert <- certP
     certComment <- optional (fStrP "comment")
     return $ NE { neType = neType, subType = subType, orth = orth, base = base
@@ -112,9 +115,10 @@ certP :: P Cert
 certP =
     mkCert <$> fSymP "certainty"
   where
-    mkCert "high" = High
+    mkCert "high"   = High
     mkCert "medium" = Medium
-    mkCert "low" = Low
+    mkCert "low"    = Low
+    mkCert _        = Medium    -- ^ It should not happen!
 
 namePtrP :: P Ptr
 namePtrP = cut (tag "ptr" *> getAttr "target") >>= \x -> return $
